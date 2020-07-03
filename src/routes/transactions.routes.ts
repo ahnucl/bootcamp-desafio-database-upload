@@ -1,12 +1,17 @@
 import { Router } from 'express';
 import { getCustomRepository } from 'typeorm';
 
+import multer from 'multer';
+import updateConfig from '../config/update';
+
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
+
+const update = multer(updateConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   // TODO
@@ -44,10 +49,14 @@ transactionsRouter.delete('/:id', async (request, response) => {
   return response.status(204).send();
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
-  console.log(request.file);
-  return response.json({ message: 'building...' });
-});
+transactionsRouter.post(
+  '/import',
+  update.single('file'),
+  async (request, response) => {
+    // TODO
+    console.log(request.file);
+    return response.json({ message: 'building...' });
+  },
+);
 
 export default transactionsRouter;
