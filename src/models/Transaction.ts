@@ -23,12 +23,8 @@ class Transaction {
 
   @Column({
     transformer: {
-      from(value: string): number {
-        return Number(value);
-      },
-      to(value: number): number {
-        return value;
-      },
+      from: (value: string): number => Number(value),
+      to: (value: number): number => value,
     },
   })
   value: number;
