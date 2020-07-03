@@ -46,6 +46,7 @@ transactionsRouter.delete('/:id', async (request, response) => {
 
 transactionsRouter.post('/import', async (request, response) => {
   // TODO
+  return response.json({ message: 'building...' });
 });
 
 export default transactionsRouter;
