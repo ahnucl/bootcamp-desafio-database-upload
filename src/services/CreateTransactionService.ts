@@ -28,6 +28,10 @@ class CreateTransactionService {
       throw new AppError('Outcome value exceeds balance total.', 400);
     }
 
+    if (type !== 'income' && type !== 'outcome') {
+      throw new AppError('Got invalid transaction type', 400);
+    }
+
     let foundCategory = await categoryRepository.findOne({
       where: { title: categoryTitle },
     });
