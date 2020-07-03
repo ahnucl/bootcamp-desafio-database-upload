@@ -46,6 +46,7 @@ transactionsRouter.delete('/:id', async (request, response) => {
 
 transactionsRouter.post('/import', async (request, response) => {
   // TODO
+  console.log(request.file);
   return response.json({ message: 'building...' });
 });
 
