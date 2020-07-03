@@ -25,11 +25,11 @@ class CreateTransactionService {
     const balance = await transactionRepository.getBalance();
 
     if (type === 'outcome' && value > balance.total) {
-      throw new AppError('Outcome value exceeds balance total.', 400);
+      throw new AppError('Outcome value exceeds balance total.');
     }
 
     if (type !== 'income' && type !== 'outcome') {
-      throw new AppError('Got invalid transaction type', 400);
+      throw new AppError('Got invalid transaction type');
     }
 
     let foundCategory = await categoryRepository.findOne({
