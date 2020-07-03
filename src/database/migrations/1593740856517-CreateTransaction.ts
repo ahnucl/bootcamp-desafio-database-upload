@@ -5,7 +5,7 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
-export default class CreateTransaction1593732960233
+export default class CreateTransaction1593740856517
   implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
@@ -48,15 +48,27 @@ export default class CreateTransaction1593732960233
         ],
       }),
     );
+
+    await queryRunner.createForeignKey(
+      'transactions',
+      new TableForeignKey({
+        name: 'transactions-categories-fk',
+        columnNames: ['category_id'],
+        referencedTableName: 'categories',
+        referencedColumnNames: ['id'],
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Precisa dropar a FK? Acho que nesse caso, como estou criando tudo junto não há necessidade
-    // await queryRunner.dropForeignKey(
-    //   'transactions',
-    //   'transactions-categories-fk',
-    // );
-    // Movi para outra migration pois estava rodando antes da criação da outra tabela
+    await queryRunner.dropForeignKey(
+      'transactions',
+      'transactions-categories-fk',
+    );
+
     await queryRunner.dropTable('transactions');
   }
 }
