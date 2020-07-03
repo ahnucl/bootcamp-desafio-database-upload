@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCustomRepository } from 'typeorm';
+import { getCustomRepository, Transaction } from 'typeorm';
 
 import multer from 'multer';
 import updateConfig from '../config/update';
@@ -7,7 +7,7 @@ import updateConfig from '../config/update';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
 
@@ -53,9 +53,16 @@ transactionsRouter.post(
   '/import',
   update.single('file'),
   async (request, response) => {
-    // TODO
-    console.log(request.file);
-    return response.json({ message: 'building...' });
+    const importTransaction = new ImportTransactionsService();
+
+    const transactions = await importTransaction.execute(request.file.filename);
+
+    return response.json(
+      transactions.map(transaction => {
+        delete transaction.category_id;
+        return transaction;
+      }),
+    );
   },
 );
 
