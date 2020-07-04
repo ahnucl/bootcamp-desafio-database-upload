@@ -15,6 +15,10 @@ async function loadCSV(filepath: string): Promise<string[][]> {
   const lines: string[][] = [];
 
   parseCSV.on('data', line => {
+    const [title, type, value] = line;
+
+    if (!title || !type || !value) return;
+
     lines.push(line);
   });
 
