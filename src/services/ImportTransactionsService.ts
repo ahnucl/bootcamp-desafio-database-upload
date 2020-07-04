@@ -1,34 +1,67 @@
 import { getCustomRepository, getRepository, In } from 'typeorm';
 
 import fs from 'fs';
+import csvParse from 'csv-parse';
 
 import Category from '../models/Category';
 import Transaction from '../models/Transaction';
 
 import TransactionRepository from '../repositories/TransactionsRepository';
+import AppError from '../errors/AppError';
 
-import loadCSV from '../util/loadCSV';
+interface TransactionCSV {
+  title: string;
+  type: 'income' | 'outcome';
+  value: number;
+  categoryTitle: string;
+}
 
 class ImportTransactionsService {
   async execute(filepath: string): Promise<Transaction[]> {
-    const data = await loadCSV(filepath);
+    const readCSVStream = fs.createReadStream(filepath);
+
+    const parseStream = csvParse({
+      from_line: 2,
+      ltrim: true,
+      rtrim: true,
+    });
+
+    const parseCSV = readCSVStream.pipe(parseStream);
+
+    const transactionsToCreate: TransactionCSV[] = [];
+
+    parseCSV.on('data', line => {
+      const [title, type, value, categoryTitle] = line;
+
+      transactionsToCreate.push({
+        title,
+        type,
+        value: Number(value),
+        categoryTitle,
+      });
+    });
+
+    await new Promise(resolve => {
+      parseCSV.on('end', resolve);
+    });
 
     await fs.promises.unlink(filepath);
 
-    const transactionToCreate = data.map(transactionParams => ({
-      title: transactionParams[0],
-      type: transactionParams[1] as 'income' | 'outcome',
-      value: Number(transactionParams[2]),
-      categoryTitle: transactionParams[3],
-    }));
+    // Validating uploaded CSV
+    // eslint-disable-next-line array-callback-return
+    transactionsToCreate.map(({ title, type, value, categoryTitle }) => {
+      if (!title || !type || !value || !categoryTitle) {
+        throw new AppError('CSV file incomplete or corrupt.');
+      }
 
-    // NÃO VERIFICAR BALANCE NESSA ROTA
-    // Obter Categories que não estão cadastradas
-    // Criar todas as categorias que não estão cadastradas
+      if (type !== 'income' && type !== 'outcome') {
+        throw new AppError('Incorrect type information.');
+      }
+    });
 
     const categoryRepository = getRepository(Category);
 
-    const uploadedCategories = transactionToCreate.map(
+    const uploadedCategories = transactionsToCreate.map(
       item => item.categoryTitle,
     );
 
@@ -60,7 +93,7 @@ class ImportTransactionsService {
 
     const transactionRepository = getCustomRepository(TransactionRepository);
     const transactions = transactionRepository.create(
-      transactionToCreate.map(({ title, type, value, categoryTitle }) => ({
+      transactionsToCreate.map(({ title, type, value, categoryTitle }) => ({
         title,
         type,
         value,
