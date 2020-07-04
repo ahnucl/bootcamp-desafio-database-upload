@@ -1,9 +1,6 @@
-import { getCustomRepository, getRepository } from 'typeorm';
+import { getCustomRepository, getRepository, In } from 'typeorm';
 
-import path from 'path';
 import fs from 'fs';
-
-import updateConfig from '../config/update';
 
 import Category from '../models/Category';
 import Transaction from '../models/Transaction';
@@ -12,20 +9,13 @@ import TransactionRepository from '../repositories/TransactionsRepository';
 
 import loadCSV from '../util/loadCSV';
 
-interface TransactionParams {
-  title: string;
-  value: string;
-  type: 'income' | 'outcome';
-  category: string;
-}
-
 class ImportTransactionsService {
   async execute(filepath: string): Promise<Transaction[]> {
     const data = await loadCSV(filepath);
 
     await fs.promises.unlink(filepath);
 
-    const transactionArray = data.map(transactionParams => ({
+    const transactionToCreate = data.map(transactionParams => ({
       title: transactionParams[0],
       type: transactionParams[1] as 'income' | 'outcome',
       value: Number(transactionParams[2]),
@@ -38,15 +28,23 @@ class ImportTransactionsService {
 
     const categoryRepository = getRepository(Category);
 
-    const uploadedCategories = transactionArray.map(item => item.categoryTitle);
+    const uploadedCategories = transactionToCreate.map(
+      item => item.categoryTitle,
+    );
 
-    const storedCategories = await categoryRepository.find();
+    const storedCategories = await categoryRepository.find({
+      where: {
+        title: In(uploadedCategories), // Não traz todas as categorias, apenas as que estão no arquivo de upload
+      },
+    });
     let newCategories: Category[] = [];
 
-    const categoriesTitles = storedCategories.map(category => category.title);
+    const storedCategoriesTitles = storedCategories.map(
+      category => category.title,
+    );
 
     const categoriesToCreate = uploadedCategories
-      .filter(category => !categoriesTitles.includes(category))
+      .filter(category => !storedCategoriesTitles.includes(category))
       .filter((category, index, self) => self.indexOf(category) === index);
 
     if (categoriesToCreate.length > 0) {
@@ -62,7 +60,7 @@ class ImportTransactionsService {
 
     const transactionRepository = getCustomRepository(TransactionRepository);
     const transactions = transactionRepository.create(
-      transactionArray.map(({ title, type, value, categoryTitle }) => ({
+      transactionToCreate.map(({ title, type, value, categoryTitle }) => ({
         title,
         type,
         value,
