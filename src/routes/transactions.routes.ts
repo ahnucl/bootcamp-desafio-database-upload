@@ -71,9 +71,9 @@ transactionsRouter.post(
   async (request, response) => {
     const importTransaction = new ImportTransactionsService();
 
-    const transactions = await importTransaction.execute(request.file.filename);
+    const transactions = await importTransaction.execute(request.file.path);
 
-    // Seria um delete transaction.category_id mais rebuscado
+    // Seria um delete transaction.category_id mais parrudo
     return response.json(
       transactions.map(
         ({ id, title, type, value, category, created_at, updated_at }) => ({

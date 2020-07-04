@@ -20,13 +20,10 @@ interface TransactionParams {
 }
 
 class ImportTransactionsService {
-  async execute(filename: string): Promise<Transaction[]> {
-    // TODO
-    const csvFilePath = path.resolve(updateConfig.directory, filename);
+  async execute(filepath: string): Promise<Transaction[]> {
+    const data = await loadCSV(filepath);
 
-    const data = await loadCSV(csvFilePath);
-
-    await fs.promises.unlink(csvFilePath);
+    await fs.promises.unlink(filepath);
 
     const transactionArray = data.map(transactionParams => ({
       title: transactionParams[0],
