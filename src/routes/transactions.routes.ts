@@ -13,7 +13,7 @@ import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
 
-const update = multer(updateConfig);
+const upload = multer(updateConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionsRepository = getCustomRepository(TransactionsRepository);
@@ -67,7 +67,7 @@ transactionsRouter.delete('/:id', async (request, response) => {
 
 transactionsRouter.post(
   '/import',
-  update.single('file'),
+  upload.single('file'),
   async (request, response) => {
     const importTransaction = new ImportTransactionsService();
 
