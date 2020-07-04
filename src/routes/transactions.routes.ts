@@ -14,7 +14,6 @@ const transactionsRouter = Router();
 const update = multer(updateConfig);
 
 transactionsRouter.get('/', async (request, response) => {
-  // TODO
   const transactionsRepository = getCustomRepository(TransactionsRepository);
   const transactions = await transactionsRepository.find({
     relations: ['category'],

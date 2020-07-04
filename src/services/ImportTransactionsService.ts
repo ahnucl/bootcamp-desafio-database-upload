@@ -1,17 +1,11 @@
-import csvParse from 'csv-parse';
-import fs from 'fs';
-import path from 'path';
-
 import { getCustomRepository, getRepository } from 'typeorm';
-
-import Transaction from '../models/Transaction';
-import Category from '../models/Category';
-import TransactionRepository from '../repositories/TransactionsRepository';
-
+import path from 'path';
+import fs from 'fs';
 import updateConfig from '../config/update';
-import AppError from '../errors/AppError';
-import transactionsRouter from '../routes/transactions.routes';
-import TransactionsRepository from '../repositories/TransactionsRepository';
+import Category from '../models/Category';
+import Transaction from '../models/Transaction';
+import TransactionRepository from '../repositories/TransactionsRepository';
+import loadCSV from '../util/loadCSV';
 
 interface TransactionParams {
   title: string;
@@ -25,31 +19,9 @@ class ImportTransactionsService {
     // TODO
     const csvFilePath = path.resolve(updateConfig.directory, filename);
 
-    async function loadCSV(filepath: string): Promise<string[][]> {
-      const readCSVStream = fs.createReadStream(filepath);
-
-      const parseStream = csvParse({
-        from_line: 2,
-        ltrim: true,
-        rtrim: true,
-      });
-
-      const parseCSV = readCSVStream.pipe(parseStream);
-
-      const lines: string[][] = [];
-
-      parseCSV.on('data', line => {
-        lines.push(line);
-      });
-
-      await new Promise(resolve => {
-        parseCSV.on('end', resolve);
-      });
-
-      return lines;
-    }
-
     const data = await loadCSV(csvFilePath);
+
+    await fs.promises.unlink(csvFilePath);
 
     const transactionArray = data.map(transactionParams => ({
       title: transactionParams[0],
