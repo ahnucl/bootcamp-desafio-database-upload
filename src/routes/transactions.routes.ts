@@ -1,9 +1,7 @@
 import { Router } from 'express';
-import { getCustomRepository, Transaction } from 'typeorm';
-
+import { getCustomRepository } from 'typeorm';
 import multer from 'multer';
 import updateConfig from '../config/update';
-
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
@@ -20,7 +18,20 @@ transactionsRouter.get('/', async (request, response) => {
   });
   const balance = await transactionsRepository.getBalance();
 
-  return response.json({ transactions, balance });
+  return response.json({
+    transactions: transactions.map(
+      ({ id, title, type, value, category, created_at, updated_at }) => ({
+        id,
+        title,
+        type,
+        value,
+        created_at,
+        updated_at,
+        category,
+      }),
+    ),
+    balance,
+  });
 });
 
 transactionsRouter.post('/', async (request, response) => {
@@ -34,6 +45,8 @@ transactionsRouter.post('/', async (request, response) => {
     type,
     categoryTitle,
   });
+
+  delete transaction.category_id;
 
   return response.json(transaction);
 });
@@ -56,11 +69,19 @@ transactionsRouter.post(
 
     const transactions = await importTransaction.execute(request.file.filename);
 
+    // Seria um delete transaction.category_id mais rebuscado
     return response.json(
-      transactions.map(transaction => {
-        delete transaction.category_id;
-        return transaction;
-      }),
+      transactions.map(
+        ({ id, title, type, value, category, created_at, updated_at }) => ({
+          id,
+          title,
+          type,
+          value,
+          created_at,
+          updated_at,
+          category,
+        }),
+      ),
     );
   },
 );
