@@ -21,12 +21,7 @@ class Transaction {
   @Column()
   type: 'income' | 'outcome';
 
-  @Column({
-    transformer: {
-      from: (value: string): number => Number(value),
-      to: (value: number): number => value,
-    },
-  })
+  @Column()
   value: number;
 
   @Column()

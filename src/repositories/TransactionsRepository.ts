@@ -14,12 +14,12 @@ class TransactionsRepository extends Repository<Transaction> {
     const transactions = await this.find();
 
     const income = transactions.reduce(
-      (acc, cur) => (cur.type === 'income' ? acc + cur.value : acc),
+      (acc, cur) => (cur.type === 'income' ? acc + Number(cur.value) : acc),
       0,
     );
 
     const outcome = transactions.reduce(
-      (acc, cur) => (cur.type === 'outcome' ? acc + cur.value : acc),
+      (acc, cur) => (cur.type === 'outcome' ? acc + Number(cur.value) : acc),
       0,
     );
 
